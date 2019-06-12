@@ -18,9 +18,11 @@ RED     = (150,   0,   0)
 WINDOWWIDTH = 800
 WINDOWHEIGHT = 600
 
-NUMINITIALFOOD = 300
-RENEWFOODRATE = 1e6
-NEWFOODPERPERIOD = 1
+NUMINITIALFOOD = 3000
+RENEWFOODRATE = 10000
+NEWFOODPERPERIOD = 10
+
+REPRODUTIVEVOL = 400
 
 class Life():
     def __init__(self):
@@ -34,6 +36,7 @@ class Life():
         child.vel = (random.random(), random.random())
         child.vol = self.vol/2
         self.vol /= 2
+        return child
     
     def getPos(self):
         return(int(self.pos[0]), int(self.pos[1]))
@@ -116,6 +119,8 @@ def timestep():
         for food in foodsystem:
             if meet(anybody, food):
                 anybody.eat(food)
+        if anybody.getVol() > REPRODUTIVEVOL:
+            ecosystem.append(anybody.makeChild())
     if foodPeriod <= 0:
         growFood(NEWFOODPERPERIOD)
         foodPeriod = RENEWFOODRATE
