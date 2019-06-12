@@ -18,19 +18,31 @@ RED     = (150,   0,   0)
 WINDOWWIDTH = 800
 WINDOWHEIGHT = 600
 
-NUMINITIALFOOD = 10
-RENEWFOODRATE = 10
-RENEWFOODPERIOD = 240
+NUMINITIALFOOD = 300
+RENEWFOODRATE = 1e6
+NEWFOODPERPERIOD = 1
 
 class Life():
     def __init__(self):
         self.pos = (random.randint(0, WINDOWWIDTH), random.randint(0, WINDOWHEIGHT))
-        self.vel = ( 1, 1)
+        self.vel = (random.random(), random.random())
         self.vol = 125
-        print(self.pos)
     
+    def makeChild(self):
+        child = Life()
+        child.pos = self.pos
+        child.vel = (random.random(), random.random())
+        child.vol = self.vol/2
+        self.vol /= 2
+    
+    def getPos(self):
+        return(int(self.pos[0]), int(self.pos[1]))
+
     def getRadius(self):
         return int(self.vol ** (1/3))
+        
+    def getVol(self):
+        return self.vol
     
     def step(self):
         self.pos = (self.pos[0] + self.vel[0], self.pos[1] + self.vel[1])
@@ -41,13 +53,17 @@ class Life():
         print(self.pos)
         
     def eat(self, food):
-        del food
+        foodsystem.remove(food)
         self.vol += 30
+
 
 class Food():
     def __init__(self):
         self.pos = (random.randint(0, WINDOWWIDTH), random.randint(0, WINDOWHEIGHT))
         self.vol = 8
+    
+    def getPos(self):
+        return(int(self.pos[0]), int(self.pos[1]))
     
     def getRadius(self):
         return int(self.vol ** (1/3))
@@ -72,28 +88,37 @@ def main():
         fpsClock.tick()
 
 def setInitialCondicion():
-    global ecosystem, time, foodsystem
+    global ecosystem, time, foodsystem, foodPeriod
     time = 0
     somebody = Life()
     ecosystem = [somebody]
     foodsystem = []
-    for i in range(NUMINITIALFOOD):
+    growFood(NUMINITIALFOOD)
+    foodPeriod = RENEWFOODPERIOD
+    
+
+def growFood(num):
+    for i in range(num):
         newFood = Food()
         foodsystem.append(newFood)
 
 def timestep():
-    global time
+    global time, foodPeriod
     time += 1
+    foodPeriod -= 1
     displaySurf.fill(BGCOLOR)
     for anybody in ecosystem:
         anybody.step()
-        pygame.draw.circle(displaySurf, GREEN, anybody.pos, anybody.getRadius())
+        pygame.draw.circle(displaySurf, GREEN, anybody.getPos(), anybody.getRadius())
     for food in foodsystem:
-        pygame.draw.circle(displaySurf, RED, food.pos, food.getRadius())
+        pygame.draw.circle(displaySurf, RED, food.getPos(), food.getRadius())
     for anybody in ecosystem:
         for food in foodsystem:
             if meet(anybody, food):
                 anybody.eat(food)
+    if foodPeriod <= 0:
+        growFood(NEWFOODPERPERIOD)
+        foodPeriod = RENEWFOODRATE
 
 def meet(o1, o2):
     return (o1.getRadius() + o2.getRadius())**2 >= (o1.pos[0] - o2.pos[0])**2 + (o1.pos[1] - o2.pos[1])**2
