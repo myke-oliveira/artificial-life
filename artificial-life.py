@@ -29,6 +29,7 @@ class Life():
         self.pos = (random.randint(0, WINDOWWIDTH), random.randint(0, WINDOWHEIGHT))
         self.vel = (random.random(), random.random())
         self.vol = 125
+        self.energy = 1e10
     
     def makeChild(self):
         child = Life()
@@ -53,10 +54,13 @@ class Life():
             self.vel = (-self.vel[0], self.vel[1])
         if self.pos[1] >= WINDOWHEIGHT or self.pos[1] <= 0:
             self.vel = (self.vel[0], -self.vel[1])
-        print(self.pos)
+        self.energy -= self.vol * (self.vel[0]**2+self.vel[1]**2)/2
+        if self.energy <= 0:
+            ecosystem.remove(self)
         
     def eat(self, food):
         foodsystem.remove(food)
+        self.energy += 100
         self.vol += 30
 
 
